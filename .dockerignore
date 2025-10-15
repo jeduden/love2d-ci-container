@@ -1,0 +1,23 @@
+# Git files
+.git
+.gitignore
+
+# Documentation
+README.md
+LICENSE
+
+# GitHub files
+.github
+
+# Test game (not needed in image)
+test-game
+
+# Examples (not needed in image)
+examples
+
+# Editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~

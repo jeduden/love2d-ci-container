@@ -1,0 +1,30 @@
+# Example GitHub Actions workflow for testing a Love2D game
+
+name: Test Love2D Game
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  test-game:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run Love2D game tests
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/game \
+            ghcr.io/jeduden/love2d-ci-container:latest
+      
+      - name: Run custom game script
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/game \
+            ghcr.io/jeduden/love2d-ci-container:latest \
+            lua /game/scripts/test.lua

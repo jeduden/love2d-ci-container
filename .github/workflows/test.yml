@@ -1,0 +1,47 @@
+name: Test Container
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          load: true
+          tags: love2d-ci:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Test container with test game
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/test-game:/game \
+            love2d-ci:test
+      
+      - name: Verify LuaJIT is available
+        run: |
+          docker run --rm love2d-ci:test luajit -v
+      
+      - name: Verify Luarocks is available
+        run: |
+          docker run --rm love2d-ci:test luarocks --version
+      
+      - name: Check image size
+        run: |
+          docker images love2d-ci:test --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"
