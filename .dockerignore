@@ -12,6 +12,9 @@ LICENSE
 # Test game (not needed in image)
 test-game
 
+# Examples (not needed in image)
+examples
+
 # Editor files
 .vscode
 .idea
