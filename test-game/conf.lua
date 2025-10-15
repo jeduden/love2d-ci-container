@@ -1,6 +1,6 @@
 function love.conf(t)
     t.identity = "love2d-ci-test"
-    t.version = "11.5"
+    t.version = "11.4"
     t.console = false
     
     t.window.title = "Love2D CI Test"
@@ -9,8 +9,8 @@ function love.conf(t)
     t.window.vsync = 1
     t.window.display = 1
     
-    -- Disable audio for headless operation
-    t.audio.mic = false
+    -- Disable audio completely for headless operation
+    t.modules.audio = false
     
     -- Minimize modules for faster startup
     t.modules.joystick = false

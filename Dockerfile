@@ -34,5 +34,8 @@ WORKDIR /game
 # Set up Xvfb for headless operation
 ENV DISPLAY=:99
 
+# Disable SDL audio to prevent ALSA errors in headless mode
+ENV SDL_AUDIODRIVER=dummy
+
 # Default command runs love on /game directory with Xvfb
 CMD ["/bin/sh", "-c", "Xvfb :99 -screen 0 1024x768x24 -ac +extension GLX +render -noreset & sleep 1 && love /game"]
