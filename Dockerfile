@@ -35,6 +35,4 @@ WORKDIR /game
 ENV DISPLAY=:99
 
 # Default command runs love on /game directory with Xvfb
-CMD Xvfb :99 -screen 0 1024x768x24 -ac +extension GLX +render -noreset & \
-    sleep 1 && \
-    love /game
+CMD ["/bin/sh", "-c", "Xvfb :99 -screen 0 1024x768x24 -ac +extension GLX +render -noreset & sleep 1 && love /game"]
