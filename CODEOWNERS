@@ -1,0 +1,4 @@
+# Code owners for love2d-ci-container
+# These owners will be requested for review when someone opens a pull request
+
+* @jeduden
