@@ -1,0 +1,12 @@
+# Example docker-compose.yml for running Love2D games
+
+version: '3.8'
+
+services:
+  love2d-game:
+    image: ghcr.io/jeduden/love2d-ci-container:latest
+    volumes:
+      # Mount your game directory to /game
+      - ./my-game:/game
+    # Override the default command if needed
+    # command: ["love", "/game", "--console"]
