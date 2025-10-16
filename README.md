@@ -93,7 +93,8 @@ The container includes ffmpeg for recording your game as it runs. The video reco
 - Captures the full game window at 30 FPS
 - Outputs in MP4 format (H.264, compatible with GitHub)
 - Records the actual visual output, perfect for PR reviews
-- Can be played directly in GitHub (no download needed for review)
+- **Embeds directly in GitHub Actions Summary** - Video plays inline without downloading
+- Uses base64 encoding to display video in the summary page
 
 ## Usage Examples
 
