@@ -92,9 +92,10 @@ Screenshots are saved to Love2D's save directory and can be extracted using the 
 The container includes ffmpeg for recording your game as it runs. The video recording:
 - Captures the full game window at 30 FPS
 - Outputs in MP4 format (H.264, compatible with GitHub)
+- **Generates animated GIF** - Embedded directly in GitHub Actions Summary
 - Records the actual visual output, perfect for PR reviews
-- **Available in GitHub Actions artifacts** - Download to watch
-- Summary shows video metadata and download instructions
+- **GIF preview inline** - See the game in action without downloading
+- Full video available in artifacts for detailed review
 
 ## Usage Examples
 

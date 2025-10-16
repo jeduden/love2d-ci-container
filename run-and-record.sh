@@ -38,6 +38,15 @@ if [ -f /tmp/game-recording.mp4 ] && [ -d /output ]; then
     cp /tmp/game-recording.mp4 /output/
     chmod 644 /output/game-recording.mp4
     echo "Video saved to /output/game-recording.mp4"
+    
+    # Convert video to animated GIF for embedding in GitHub
+    echo "Converting to animated GIF..."
+    ffmpeg -i /tmp/game-recording.mp4 -vf "fps=10,scale=800:-1:flags=lanczos" -c:v gif /tmp/game-recording.gif > /dev/null 2>&1
+    if [ -f /tmp/game-recording.gif ]; then
+        cp /tmp/game-recording.gif /output/
+        chmod 644 /output/game-recording.gif
+        echo "Animated GIF saved to /output/game-recording.gif"
+    fi
 fi
 
 # Also run screenshot extraction

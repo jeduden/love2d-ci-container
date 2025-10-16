@@ -42,23 +42,19 @@ jobs:
             const fs = require('fs');
             let summary = '# 🎮 Game Test Results\n\n';
             
+            // Animated GIF preview
+            if (fs.existsSync('output/game-recording.gif')) {
+              const gifBuffer = fs.readFileSync('output/game-recording.gif');
+              const gifBase64 = gifBuffer.toString('base64');
+              summary += '## 🎬 Game Recording\n\n';
+              summary += `![Game Recording](data:image/gif;base64,${gifBase64})\n\n`;
+            }
+            
             // Video info
             if (fs.existsSync('output/game-recording.mp4')) {
               const stats = fs.statSync('output/game-recording.mp4');
               const sizeMB = (stats.size / 1024 / 1024).toFixed(2);
-              
-              summary += '## 🎬 Video Recording\n\n';
-              summary += '✅ Game video captured successfully!\n\n';
-              summary += `**File:** game-recording.mp4 (${sizeMB} MB)\n\n`;
-              summary += '📥 Download from artifacts above to watch\n\n';
-            }
-            
-            // Screenshot info
-            const files = fs.readdirSync('output').filter(f => f.endsWith('.png'));
-            if (files.length > 0) {
-              summary += `## 📸 Screenshots\n\n`;
-              summary += `✅ Captured ${files.length} screenshot(s)\n\n`;
-              summary += '📥 Download from artifacts to view\n\n';
+              summary += `**Full Video (MP4)** - ${sizeMB} MB - 📥 Download from artifacts\n\n`;
             }
             
             await core.summary.addRaw(summary).write();

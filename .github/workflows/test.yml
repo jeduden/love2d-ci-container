@@ -80,18 +80,23 @@ jobs:
             
             let summary = '# 🎮 Love2D CI Test Results\n\n';
             
-            // Video recording
+            // Animated GIF preview
+            if (fs.existsSync('screenshots/game-recording.gif')) {
+              const gifBuffer = fs.readFileSync('screenshots/game-recording.gif');
+              const gifBase64 = gifBuffer.toString('base64');
+              const stats = fs.statSync('screenshots/game-recording.gif');
+              const sizeMB = (stats.size / 1024 / 1024).toFixed(2);
+              
+              summary += '## 🎬 Game Recording\n\n';
+              summary += `![Game Recording](data:image/gif;base64,${gifBase64})\n\n`;
+              summary += `**Animated GIF** - ${sizeMB} MB (10 FPS)\n\n`;
+            }
+            
+            // Video recording info
             if (fs.existsSync('screenshots/game-recording.mp4')) {
               const stats = fs.statSync('screenshots/game-recording.mp4');
               const sizeMB = (stats.size / 1024 / 1024).toFixed(2);
-              
-              summary += '## 🎬 Video Recording\n\n';
-              summary += '✅ Game video captured successfully!\n\n';
-              summary += `**File:** game-recording.mp4\n`;
-              summary += `**Size:** ${sizeMB} MB\n`;
-              summary += `**Duration:** ~3 seconds at 30 FPS\n\n`;
-              summary += '📥 **[Download from Artifacts](#artifacts)** to watch the video\n\n';
-              summary += '> The video shows the complete game execution with all visual elements and animations.\n\n';
+              summary += `**Full Video (MP4)** - ${sizeMB} MB (30 FPS) - 📥 [Download from Artifacts](#artifacts)\n\n`;
             }
             
             // Screenshots
@@ -108,16 +113,9 @@ jobs:
                   summary += `- **${file}** (${sizeKB} KB)\n`;
                 }
                 
-                summary += '\n📥 **[Download from Artifacts](#artifacts)** to view all screenshots\n\n';
+                summary += '\n📥 **[Download from Artifacts](#artifacts)** to view all outputs\n\n';
               }
             }
-            
-            summary += '---\n\n';
-            summary += '💡 **How to view:**\n';
-            summary += '1. Scroll to the top of this page\n';
-            summary += '2. Find the **Artifacts** section\n';
-            summary += '3. Click **test-game-outputs** to download\n';
-            summary += '4. Extract and open the video/screenshots\n';
             
             await core.summary.addRaw(summary).write();
       
