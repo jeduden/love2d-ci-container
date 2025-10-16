@@ -9,10 +9,8 @@ function love.conf(t)
     t.window.vsync = 1
     t.window.display = 1
     
-    -- Audio is disabled for headless CI environments
-    -- Set SDL_AUDIODRIVER=dummy environment variable to enable audio module
-    -- without requiring actual audio hardware
-    t.modules.audio = false
+    -- Audio enabled with SDL_AUDIODRIVER=dummy for headless CI
+    t.modules.audio = true
     
     -- Minimize modules for faster startup
     t.modules.joystick = false

@@ -13,17 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write  # Required for posting screenshots to PR
+      pull-requests: write
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Run Love2D game tests
-        run: |
-          docker run --rm \
-            -v ${{ github.workspace }}:/game \
-            ghcr.io/jeduden/love2d-ci-container:latest
+      - uses: actions/checkout@v4
       
       - name: Run game and capture screenshots
         run: |
@@ -34,13 +27,12 @@ jobs:
             ghcr.io/jeduden/love2d-ci-container:latest \
             /run-and-screenshot.sh
       
-      - name: Upload screenshots as artifacts
+      - name: Upload screenshots
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: game-screenshots
           path: screenshots/
-          retention-days: 30
       
       - name: Post screenshots to PR
         if: github.event_name == 'pull_request'
@@ -48,28 +40,13 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const path = require('path');
-            
-            const screenshotDir = 'screenshots';
-            if (!fs.existsSync(screenshotDir)) {
-              console.log('No screenshots directory found');
-              return;
-            }
-            
-            const files = fs.readdirSync(screenshotDir).filter(f => f.endsWith('.png'));
-            if (files.length === 0) {
-              console.log('No screenshots found');
-              return;
-            }
+            const files = fs.readdirSync('screenshots').filter(f => f.endsWith('.png'));
+            if (files.length === 0) return;
             
             let comment = '## 🎮 Game Screenshots\n\n';
-            comment += `Found ${files.length} screenshot(s) from the test run:\n\n`;
-            
             for (const file of files) {
-              const content = fs.readFileSync(path.join(screenshotDir, file));
-              const base64 = content.toString('base64');
-              comment += `### ${file}\n`;
-              comment += `![${file}](data:image/png;base64,${base64})\n\n`;
+              const content = fs.readFileSync(`screenshots/${file}`);
+              comment += `### ${file}\n![${file}](data:image/png;base64,${content.toString('base64')})\n\n`;
             }
             
             await github.rest.issues.createComment({

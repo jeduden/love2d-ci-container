@@ -24,6 +24,8 @@ if [ -d "$SAVE_DIR/screenshots" ]; then
     # Copy screenshots to output directory
     mkdir -p /output
     cp -v "$SAVE_DIR/screenshots"/* /output/ 2>/dev/null || echo "No screenshots found"
+    # Fix permissions so files are readable by the host user
+    chmod 644 /output/*.png 2>/dev/null || true
     echo "Screenshots extracted to /output"
 else
     echo "No screenshots directory found at $SAVE_DIR/screenshots"

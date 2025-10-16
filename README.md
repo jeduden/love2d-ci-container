@@ -150,32 +150,21 @@ jobs:
             ghcr.io/jeduden/love2d-ci-container:latest \
             /run-and-screenshot.sh
       
-      - name: Comment screenshots on PR
+      - name: Post screenshots to PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const path = require('path');
+            const files = fs.readdirSync('screenshots').filter(f => f.endsWith('.png'));
+            if (files.length === 0) return;
             
-            // Read all screenshots
-            const screenshotDir = 'screenshots';
-            const files = fs.readdirSync(screenshotDir);
-            
-            // Create comment with screenshots
             let comment = '## 🎮 Game Screenshots\n\n';
-            comment += 'Screenshots captured during test run:\n\n';
-            
             for (const file of files) {
-              if (file.endsWith('.png')) {
-                const content = fs.readFileSync(path.join(screenshotDir, file));
-                const base64 = content.toString('base64');
-                comment += `### ${file}\n`;
-                comment += `![${file}](data:image/png;base64,${base64})\n\n`;
-              }
+              const content = fs.readFileSync(`screenshots/${file}`);
+              comment += `### ${file}\n![${file}](data:image/png;base64,${content.toString('base64')})\n\n`;
             }
             
-            // Post comment
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -202,22 +191,7 @@ docker run --rm love2d-ci:local luajit -v
 
 ### Audio Testing
 
-The container includes PulseAudio with dummy drivers for testing games with audio:
-
-```bash
-docker run --rm \
-  -v $(pwd)/your-game:/game \
-  ghcr.io/jeduden/love2d-ci-container:latest \
-  /run-with-audio.sh
-```
-
-Note: Audio is disabled by default in the test game for faster startup. Enable it in `conf.lua`:
-
-```lua
-function love.conf(t)
-    t.modules.audio = true  -- Enable audio module
-end
-```
+The container supports audio testing using SDL's dummy audio driver (SDL_AUDIODRIVER=dummy). Audio works out of the box without requiring actual audio hardware. Games can play sounds and music normally, output is just not heard.
 
 ### Manual Screenshot Extraction
 
