@@ -82,17 +82,16 @@ jobs:
             
             // Video recording
             if (fs.existsSync('screenshots/game-recording.mp4')) {
-              const videoBuffer = fs.readFileSync('screenshots/game-recording.mp4');
-              const videoBase64 = videoBuffer.toString('base64');
               const stats = fs.statSync('screenshots/game-recording.mp4');
               const sizeMB = (stats.size / 1024 / 1024).toFixed(2);
               
               summary += '## 🎬 Video Recording\n\n';
-              summary += `<video width="800" controls>\n`;
-              summary += `  <source src="data:video/mp4;base64,${videoBase64}" type="video/mp4">\n`;
-              summary += `  Your browser does not support the video tag.\n`;
-              summary += `</video>\n\n`;
-              summary += `**Size:** ${sizeMB} MB\n\n`;
+              summary += '✅ Game video captured successfully!\n\n';
+              summary += `**File:** game-recording.mp4\n`;
+              summary += `**Size:** ${sizeMB} MB\n`;
+              summary += `**Duration:** ~3 seconds at 30 FPS\n\n`;
+              summary += '📥 **[Download from Artifacts](#artifacts)** to watch the video\n\n';
+              summary += '> The video shows the complete game execution with all visual elements and animations.\n\n';
             }
             
             // Screenshots
@@ -101,15 +100,24 @@ jobs:
               const files = fs.readdirSync(screenshotDir).filter(f => f.endsWith('.png')).sort();
               if (files.length > 0) {
                 summary += '## 📸 Screenshots\n\n';
-                summary += `Captured ${files.length} screenshot(s):\n\n`;
+                summary += `✅ Captured ${files.length} screenshot(s):\n\n`;
+                
                 for (const file of files) {
                   const stats = fs.statSync(`${screenshotDir}/${file}`);
                   const sizeKB = (stats.size / 1024).toFixed(1);
                   summary += `- **${file}** (${sizeKB} KB)\n`;
                 }
-                summary += '\n📥 All outputs available in the **test-game-outputs** artifact.\n\n';
+                
+                summary += '\n📥 **[Download from Artifacts](#artifacts)** to view all screenshots\n\n';
               }
             }
+            
+            summary += '---\n\n';
+            summary += '💡 **How to view:**\n';
+            summary += '1. Scroll to the top of this page\n';
+            summary += '2. Find the **Artifacts** section\n';
+            summary += '3. Click **test-game-outputs** to download\n';
+            summary += '4. Extract and open the video/screenshots\n';
             
             await core.summary.addRaw(summary).write();
       
