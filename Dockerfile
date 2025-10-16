@@ -19,6 +19,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pulseaudio \
     # For screenshot conversion (optional but recommended)
     imagemagick \
+    # For video recording
+    ffmpeg \
     # Install love but work around the postinst alternatives issue
     && apt-get install -y --no-install-recommends love || true \
     # Create the missing man page directory and file to fix the alternatives issue
@@ -36,7 +38,8 @@ RUN mkdir -p /game
 COPY run-with-audio.sh /run-with-audio.sh
 COPY extract-screenshots.sh /extract-screenshots.sh
 COPY run-and-screenshot.sh /run-and-screenshot.sh
-RUN chmod +x /run-with-audio.sh /extract-screenshots.sh /run-and-screenshot.sh
+COPY run-and-record.sh /run-and-record.sh
+RUN chmod +x /run-with-audio.sh /extract-screenshots.sh /run-and-screenshot.sh /run-and-record.sh
 
 # Set working directory
 WORKDIR /game

@@ -42,9 +42,9 @@ Run the included test game:
 docker run --rm -v $(pwd)/test-game:/game love2d-ci:local
 ```
 
-### Screenshots
+### Screenshots and Video
 
-Capture and extract screenshots from your game for visual testing or documentation:
+Capture screenshots and video recordings from your game for visual testing or documentation:
 
 ```bash
 # Run game and extract screenshots in one command
@@ -53,9 +53,16 @@ docker run --rm \
   -v $(pwd)/screenshots:/output \
   ghcr.io/jeduden/love2d-ci-container:latest \
   /run-and-screenshot.sh
+
+# Run game and record video (includes screenshots)
+docker run --rm \
+  -v $(pwd)/your-game:/game \
+  -v $(pwd)/output:/output \
+  ghcr.io/jeduden/love2d-ci-container:latest \
+  /run-and-record.sh
 ```
 
-Your screenshots will be available in the `./screenshots` directory.
+Your screenshots and video will be available in the output directory.
 
 #### How to Use Screenshots in Your Game
 
@@ -80,6 +87,14 @@ end
 
 Screenshots are saved to Love2D's save directory and can be extracted using the helper scripts.
 
+#### Video Recording
+
+The container includes ffmpeg for recording your game as it runs. The video recording:
+- Captures the full game window at 30 FPS
+- Outputs in MP4 format (H.264, compatible with GitHub)
+- Records the actual visual output, perfect for PR reviews
+- Can be played directly in GitHub (no download needed for review)
+
 ## Usage Examples
 
 ### In GitHub Actions
@@ -98,9 +113,9 @@ jobs:
             ghcr.io/jeduden/love2d-ci-container:latest
 ```
 
-#### With Screenshot Capture and Action Summary
+#### With Video Recording and Screenshots
 
-Capture screenshots and display them in the GitHub Actions summary with audio test results:
+Capture video and screenshots, upload as artifacts:
 
 ```yaml
 jobs:
@@ -109,44 +124,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Run game and capture screenshots
+      - name: Run game and record video
         run: |
-          mkdir -p screenshots
+          mkdir -p output
           docker run --rm \
             -v ${{ github.workspace }}:/game \
-            -v ${{ github.workspace }}/screenshots:/output \
+            -v ${{ github.workspace }}/output:/output \
             ghcr.io/jeduden/love2d-ci-container:latest \
-            /run-and-screenshot.sh
+            /run-and-record.sh
       
-      - name: Display test results in summary
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            let summary = '# 🎮 Test Results\n\n';
-            
-            // Audio status
-            if (fs.existsSync('screenshots/audio-status.txt')) {
-              summary += '## 🔊 Audio\n```\n' + fs.readFileSync('screenshots/audio-status.txt', 'utf8') + '\n```\n\n';
-            }
-            
-            // Screenshots
-            const files = fs.readdirSync('screenshots').filter(f => f.endsWith('.png'));
-            summary += '## 📸 Screenshots\n\n';
-            for (const file of files) {
-              const content = fs.readFileSync(`screenshots/${file}`);
-              summary += `### ${file}\n![${file}](data:image/png;base64,${content.toString('base64')})\n\n`;
-            }
-            
-            await core.summary.addRaw(summary).write();
-      
-      - name: Upload screenshots
+      - name: Upload video and screenshots
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: game-screenshots
-          path: screenshots/
+          name: game-recording
+          path: output/
 ```
+
+This captures both video (MP4) and screenshots (PNG) in one step.
 
 This displays screenshots and audio test results directly in the GitHub Actions summary page.
 

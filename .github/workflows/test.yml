@@ -43,18 +43,31 @@ jobs:
             love2d-ci:test \
             /run-and-screenshot.sh
       
+      - name: Record video of game
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/test-game:/game \
+            -v ${{ github.workspace }}/screenshots:/output \
+            love2d-ci:test \
+            /run-and-record.sh
+      
       - name: Verify screenshots were created
         run: |
           echo "Checking for screenshots..."
           ls -lh screenshots/
           test $(ls -1 screenshots/*.png 2>/dev/null | wc -l) -gt 0 || (echo "No screenshots found!" && exit 1)
           echo "Screenshots created successfully!"
+          
+          if [ -f screenshots/game-recording.mp4 ]; then
+            echo "Video recording found!"
+            ls -lh screenshots/game-recording.mp4
+          fi
       
-      - name: Upload screenshots and audio
+      - name: Upload screenshots and video
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-game-screenshots
+          name: test-game-outputs
           path: screenshots/
           retention-days: 7
       
@@ -64,11 +77,14 @@ jobs:
           echo "# 🎮 Love2D CI Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          # Audio test results
-          if [ -f screenshots/audio-info.txt ]; then
-            echo "## 🔊 Audio Test" >> $GITHUB_STEP_SUMMARY
+          # Video recording
+          if [ -f screenshots/game-recording.mp4 ]; then
+            VIDEO_SIZE=$(du -h screenshots/game-recording.mp4 | cut -f1)
+            echo "## 🎬 Video Recording" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            cat screenshots/audio-info.txt >> $GITHUB_STEP_SUMMARY
+            echo "✅ Game recording captured: **game-recording.mp4** ($VIDEO_SIZE)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "📥 Download the **test-game-outputs** artifact to watch the video." >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
           
@@ -88,7 +104,7 @@ jobs:
                 fi
               done
               echo "" >> $GITHUB_STEP_SUMMARY
-              echo "📥 Download the **test-game-screenshots** artifact above to view all screenshots." >> $GITHUB_STEP_SUMMARY
+              echo "📥 Download the **test-game-outputs** artifact to view all screenshots." >> $GITHUB_STEP_SUMMARY
             fi
           fi
       

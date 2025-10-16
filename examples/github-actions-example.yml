@@ -18,61 +18,46 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Run game and capture screenshots
+      - name: Run game and record video
         run: |
-          mkdir -p screenshots
+          mkdir -p output
           docker run --rm \
             -v ${{ github.workspace }}:/game \
-            -v ${{ github.workspace }}/screenshots:/output \
+            -v ${{ github.workspace }}/output:/output \
             ghcr.io/jeduden/love2d-ci-container:latest \
-            /run-and-screenshot.sh
+            /run-and-record.sh
       
-      - name: Display test results in summary
-        if: always()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            let summary = '# 🎮 Test Results\n\n';
-            
-            // Audio status
-            if (fs.existsSync('screenshots/audio-status.txt')) {
-              summary += '## 🔊 Audio\n```\n' + fs.readFileSync('screenshots/audio-status.txt', 'utf8') + '\n```\n\n';
-            }
-            
-            // Screenshots  
-            const files = fs.readdirSync('screenshots').filter(f => f.endsWith('.png'));
-            if (files.length > 0) {
-              summary += '## 📸 Screenshots\n\n';
-              for (const file of files) {
-                const content = fs.readFileSync(`screenshots/${file}`);
-                summary += `### ${file}\n![${file}](data:image/png;base64,${content.toString('base64')})\n\n`;
-              }
-            }
-            
-            await core.summary.addRaw(summary).write();
-      
-      - name: Upload screenshots
+      - name: Upload video and screenshots
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: game-screenshots
-          path: screenshots/
+          name: game-recording
+          path: output/
       
-      - name: Post screenshots to PR
-        if: github.event_name == 'pull_request'
+      - name: Post video to PR
+        if: github.event_name == 'pull_request' && hashFiles('output/game-recording.mp4') != ''
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const files = fs.readdirSync('screenshots').filter(f => f.endsWith('.png'));
-            if (files.length === 0) return;
             
-            let comment = '## 🎮 Game Screenshots\n\n';
-            for (const file of files) {
-              const content = fs.readFileSync(`screenshots/${file}`);
-              comment += `### ${file}\n![${file}](data:image/png;base64,${content.toString('base64')})\n\n`;
+            let comment = '## 🎮 Game Test Results\n\n';
+            
+            // Check for video
+            if (fs.existsSync('output/game-recording.mp4')) {
+              const stats = fs.statSync('output/game-recording.mp4');
+              const sizeMB = (stats.size / 1024 / 1024).toFixed(2);
+              comment += '### 🎬 Video Recording\n\n';
+              comment += `Video captured (${sizeMB} MB). Download from artifacts to watch.\n\n`;
             }
+            
+            // List screenshots
+            const files = fs.readdirSync('output').filter(f => f.endsWith('.png'));
+            if (files.length > 0) {
+              comment += `### 📸 Screenshots\n\nCaptured ${files.length} screenshot(s): ${files.join(', ')}\n\n`;
+            }
+            
+            comment += '📥 Download the **game-recording** artifact to view all outputs.';
             
             await github.rest.issues.createComment({
               owner: context.repo.owner,
