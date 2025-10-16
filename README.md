@@ -98,9 +98,9 @@ jobs:
             ghcr.io/jeduden/love2d-ci-container:latest
 ```
 
-#### With Screenshot Capture
+#### With Screenshot Capture and Action Summary
 
-Capture screenshots during testing and upload them as artifacts:
+Capture screenshots and display them in the GitHub Actions summary with audio test results:
 
 ```yaml
 jobs:
@@ -118,14 +118,37 @@ jobs:
             ghcr.io/jeduden/love2d-ci-container:latest \
             /run-and-screenshot.sh
       
+      - name: Display test results in summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let summary = '# 🎮 Test Results\n\n';
+            
+            // Audio status
+            if (fs.existsSync('screenshots/audio-status.txt')) {
+              summary += '## 🔊 Audio\n```\n' + fs.readFileSync('screenshots/audio-status.txt', 'utf8') + '\n```\n\n';
+            }
+            
+            // Screenshots
+            const files = fs.readdirSync('screenshots').filter(f => f.endsWith('.png'));
+            summary += '## 📸 Screenshots\n\n';
+            for (const file of files) {
+              const content = fs.readFileSync(`screenshots/${file}`);
+              summary += `### ${file}\n![${file}](data:image/png;base64,${content.toString('base64')})\n\n`;
+            }
+            
+            await core.summary.addRaw(summary).write();
+      
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: game-screenshots
           path: screenshots/
-          retention-days: 30
 ```
+
+This displays screenshots and audio test results directly in the GitHub Actions summary page.
 
 #### Post Screenshots to PR (for Copilot/Agents)
 

@@ -14,8 +14,16 @@ function love.load()
     
     -- Test audio functionality
     print("Testing audio system...")
+    local audioStatus = {
+        module_enabled = false,
+        source_created = false,
+        playback_attempted = false,
+        playback_success = false
+    }
+    
     if love.audio then
         print("Audio module: enabled")
+        audioStatus.module_enabled = true
         local success, err = pcall(function()
             -- Create a simple beep sound programmatically
             local sampleRate = 44100
@@ -35,6 +43,7 @@ function love.load()
         
         if success then
             print("Audio test sound created successfully")
+            audioStatus.source_created = true
         else
             print("Audio initialization failed (expected in headless mode): " .. tostring(err))
             audioSource = nil
@@ -42,6 +51,9 @@ function love.load()
     else
         print("Audio module: disabled")
     end
+    
+    -- Store audio status for later reporting
+    _G.audioStatus = audioStatus
     
     -- Create screenshots directory
     local info = love.filesystem.getInfo("screenshots")
@@ -56,11 +68,13 @@ function love.update(dt)
     
     -- Play audio at frame 60
     if frameCount == 60 and audioSource then
+        _G.audioStatus.playback_attempted = true
         local success, err = pcall(function()
             audioSource:play()
         end)
         if success then
             print("Playing audio test sound")
+            _G.audioStatus.playback_success = true
         else
             print("Audio playback failed (expected in headless mode): " .. tostring(err))
         end
@@ -70,6 +84,18 @@ function love.update(dt)
         print("Test completed successfully!")
         print("Frames rendered: " .. frameCount)
         print("Screenshots taken: " .. countScreenshots())
+        
+        -- Write audio status report
+        local statusReport = string.format(
+            "AUDIO_TEST_RESULTS:\nModule Enabled: %s\nSource Created: %s\nPlayback Attempted: %s\nPlayback Success: %s",
+            tostring(_G.audioStatus.module_enabled),
+            tostring(_G.audioStatus.source_created),
+            tostring(_G.audioStatus.playback_attempted),
+            tostring(_G.audioStatus.playback_success)
+        )
+        love.filesystem.write("audio-status.txt", statusReport)
+        print(statusReport)
+        
         love.event.quit(0)
     end
 end

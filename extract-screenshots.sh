@@ -31,3 +31,10 @@ else
     echo "No screenshots directory found at $SAVE_DIR/screenshots"
     exit 1
 fi
+
+# Also extract audio status file if it exists
+if [ -f "$SAVE_DIR/audio-status.txt" ]; then
+    cp -v "$SAVE_DIR/audio-status.txt" /output/
+    chmod 644 /output/audio-status.txt 2>/dev/null || true
+    echo "Audio status extracted to /output"
+fi
