@@ -50,50 +50,47 @@ jobs:
           test $(ls -1 screenshots/*.png 2>/dev/null | wc -l) -gt 0 || (echo "No screenshots found!" && exit 1)
           echo "Screenshots created successfully!"
       
-      - name: Display test results in summary
-        if: always()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const path = require('path');
-            
-            let summary = '# 🎮 Love2D CI Test Results\n\n';
-            
-            // Add audio test results
-            const audioStatusPath = 'screenshots/audio-status.txt';
-            if (fs.existsSync(audioStatusPath)) {
-              const audioStatus = fs.readFileSync(audioStatusPath, 'utf8');
-              summary += '## 🔊 Audio Test Results\n\n';
-              summary += '```\n' + audioStatus + '\n```\n\n';
-            }
-            
-            // Add screenshots
-            const screenshotDir = 'screenshots';
-            if (fs.existsSync(screenshotDir)) {
-              const files = fs.readdirSync(screenshotDir).filter(f => f.endsWith('.png')).sort();
-              if (files.length > 0) {
-                summary += '## 📸 Screenshots\n\n';
-                summary += `Found ${files.length} screenshot(s):\n\n`;
-                
-                for (const file of files) {
-                  const content = fs.readFileSync(path.join(screenshotDir, file));
-                  const base64 = content.toString('base64');
-                  summary += `### ${file}\n`;
-                  summary += `![${file}](data:image/png;base64,${base64})\n\n`;
-                }
-              }
-            }
-            
-            await core.summary.addRaw(summary).write();
-      
-      - name: Upload screenshots
+      - name: Upload screenshots and audio
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-game-screenshots
           path: screenshots/
           retention-days: 7
+      
+      - name: Display test results in summary
+        if: always()
+        run: |
+          echo "# 🎮 Love2D CI Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Audio test results
+          if [ -f screenshots/audio-info.txt ]; then
+            echo "## 🔊 Audio Test" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            cat screenshots/audio-info.txt >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Screenshots
+          if [ -d screenshots ]; then
+            PNG_COUNT=$(ls -1 screenshots/*.png 2>/dev/null | wc -l)
+            if [ "$PNG_COUNT" -gt 0 ]; then
+              echo "## 📸 Screenshots" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "✅ Captured $PNG_COUNT screenshot(s):" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              for img in screenshots/*.png; do
+                if [ -f "$img" ]; then
+                  filename=$(basename "$img")
+                  size=$(du -h "$img" | cut -f1)
+                  echo "- **$filename** ($size)" >> $GITHUB_STEP_SUMMARY
+                fi
+              done
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "📥 Download the **test-game-screenshots** artifact above to view all screenshots." >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
       
       - name: Verify LuaJIT is available
         run: |

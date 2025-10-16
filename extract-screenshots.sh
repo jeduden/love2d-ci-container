@@ -38,3 +38,10 @@ if [ -f "$SAVE_DIR/audio-status.txt" ]; then
     chmod 644 /output/audio-status.txt 2>/dev/null || true
     echo "Audio status extracted to /output"
 fi
+
+# Extract audio info file if it exists
+if [ -f "$SAVE_DIR/audio-info.txt" ]; then
+    cp -v "$SAVE_DIR/audio-info.txt" /output/
+    chmod 644 /output/audio-info.txt 2>/dev/null || true
+    echo "Audio info extracted to /output"
+fi
