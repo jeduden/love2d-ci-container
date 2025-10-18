@@ -10,6 +10,8 @@ A minimal Debian-based Docker container for running Love2D games in headless/CI 
 - 📦 **Minimal size**: Optimized for small container size
 - 🚀 **CI/CD ready**: Perfect for automated testing and continuous integration
 - 📸 **Screenshot support**: Capture and extract screenshots for visual regression testing
+- 🎬 **Video recording**: Record game execution as MP4 and animated GIF
+- 🤖 **Copilot integration**: Built-in instructions for automated visual PR reviews
 - 🔊 **Audio testing**: Dummy audio driver for testing audio-enabled games
 
 ## Quick Start
@@ -194,6 +196,59 @@ jobs:
 ```
 
 This workflow makes screenshots immediately visible to reviewers and AI agents like GitHub Copilot, enabling visual feedback on game changes.
+
+## GitHub Copilot Integration
+
+This repository includes comprehensive instructions for GitHub Copilot in `.github/copilot-instructions.md`. These instructions guide Copilot to:
+
+- 🎬 **Automatically capture video and animated GIFs** when reviewing Love2D game PRs
+- 📸 **Post screenshots inline** in PR comments for immediate visual feedback
+- 🎞️ **Embed animated GIFs** directly in PR reviews showing complete game execution
+- 📝 **Provide structured visual feedback** with observations and comparisons
+- 🤖 **Enable AI-powered visual review** without manual intervention
+
+### For Copilot Agents
+
+When GitHub Copilot reviews a PR with Love2D game changes, it will:
+
+1. Run the container with `/run-and-record.sh` to capture video, GIF, and screenshots
+2. Post the animated GIF inline in the PR comment for immediate visual feedback
+3. Include individual screenshot images at key frames
+4. Provide observations about visual behavior and rendering
+5. Reference the full MP4 video in artifacts for detailed analysis
+
+This enables comprehensive visual regression testing and automated PR reviews with rich visual context.
+
+### Example Automated PR Comment
+
+When Copilot reviews your PR, you'll see comments like:
+
+```markdown
+## 🎮 Love2D Game Test Results
+
+I've tested the game changes using the Love2D CI container. Here's what I observed:
+
+### Game Recording
+
+![Game Recording](data:image/gif;base64,...)
+
+The animated GIF shows the complete game execution (~3 seconds at 10 FPS).
+
+### Key Observations
+
+- Circle animation works smoothly with radius changing based on frame count
+- Rectangles render correctly on left and right sides
+- Text displays frame counter and test status properly
+- No rendering glitches observed
+
+### Screenshots at Key Frames
+
+[Individual screenshots embedded inline]
+
+Full quality MP4 video available in artifacts.
+```
+
+See `.github/copilot-instructions.md` for complete integration details.
 
 ### Running Luarocks
 
