@@ -55,69 +55,65 @@ When reviewing a PR with Love2D game changes:
    - `audio-status.txt` - Audio system verification (if applicable)
    - `audio-info.txt` - Audio test information (if applicable)
 
-3. **Post animated GIF in PR comments:**
-   - **ALWAYS post the animated GIF inline** in your PR review comment
-   - Load `output/game-recording.gif` and embed it directly
-   - The GIF shows the complete game execution with smooth animation
-   - This provides immediate visual feedback without requiring downloads
-   - **Post ONLY the GIF image** - no headers, descriptions, or surrounding formatting
+3. **Post animated GIF and screenshots in PR comments:**
+   - **MUST use browser/playwright to render and capture screenshots** for display
+   - Create a minimal HTML page that displays ONLY the screenshot image
+   - Use playwright's `browser_take_screenshot` to capture the rendered page
+   - The HTML should contain NO text, headers, or descriptions - just the image
+   - This ensures screenshots are properly visible in PR comments
+   
+   **Example HTML template for screenshot display:**
+   ```html
+   <!DOCTYPE html>
+   <html>
+   <head><meta charset="UTF-8"><style>body{margin:0;padding:0;background:#000;display:flex;align-items:center;justify-content:center;}</style></head>
+   <body><img src="data:image/png;base64,BASE64_ENCODED_IMAGE" alt="Game Screenshot"></body>
+   </html>
+   ```
+   
+   **Steps to post screenshots:**
+   1. Read the PNG file from `output/frame_*.png`
+   2. Encode as base64
+   3. Create minimal HTML with just the image (no text)
+   4. Use playwright to navigate to the HTML and take screenshot
+   5. Post the playwright screenshot in the PR comment
+   
+   **For animated GIFs:**
+   1. Read `output/game-recording.gif`
+   2. Encode as base64
+   3. Create minimal HTML with just the GIF (no text)
+   4. Use playwright to capture the first frame
+   5. Post the screenshot showing the GIF
 
-4. **Post individual screenshots:**
-   - Load and post PNG screenshots from `output/frame_*.png`
-   - These show specific game states at key frames
-   - **Post ONLY the raw PNG images** - no explanatory text or formatting around them
-   - Screenshots should show ONLY the game screen (800x600 pixels)
-   - Useful for comparing before/after states
-
+4. **Provide context with markdown text:**
+   - Use markdown text to describe observations, separate from images
+   - Explain what's shown in each screenshot
+   - Note any visual issues or improvements
+   
 5. **Reference full video in artifacts:**
    - Mention that full quality MP4 is available in artifacts if needed
    - Provide download link for detailed frame-by-frame analysis
 
 ### Example PR Review Comment Format
 
-When posting visual feedback, use this format:
+When posting visual feedback:
 
-```markdown
-## 🎮 Love2D Game Test Results
+1. Run the container and capture outputs
+2. Create minimal HTML pages with just the images
+3. Use playwright to render and screenshot each HTML page
+4. Post the playwright screenshots in your comment
+5. Add markdown text to describe what's shown
 
-I've tested the game changes using the Love2D CI container. Here's what I observed:
-
-### Game Recording
-
-![Game Recording](path/to/game-recording.gif)
-
-### Key Observations
-
-- [Your observations about the visual behavior]
-- [Any issues or improvements noticed]
-- [Performance or rendering notes]
-
-### Screenshots at Key Frames
-
-![Frame 30](path/to/frame_30.png)
-
-![Frame 90](path/to/frame_90.png)
-
-![Frame 150](path/to/frame_150.png)
-
-### Additional Details
-
-- Resolution: 800x600 (headless mode via Xvfb)
-- Full quality MP4 video available in artifacts
-
-[Your detailed review comments here]
-```
-
-**Important:** Post screenshots and GIFs as raw images without any surrounding formatting, descriptions, or headers within the image itself. The game output should be clean and unadorned.
+The screenshots should contain ONLY the game visual output - no surrounding text, headers, or formatting within the image itself.
 
 ### Best Practices
 
 1. **Always capture visual output** when reviewing Love2D game PRs
-2. **Always post the animated GIF** inline in your comment for immediate visual feedback
-3. **Post individual screenshots** to highlight specific states or issues
-4. **Post clean game output only** - no formatted presentations, headers, or explanatory text around images
-5. **Screenshots should show ONLY the game screen** - the raw 800x600 pixel output without surrounding content
-6. **Describe what you observe** in the visual output using markdown text, separate from the images
+2. **Use playwright to render screenshots** - create minimal HTML with just the image, then screenshot it
+3. **Post clean game output only** - HTML should contain ONLY the image, no text or formatting
+4. **Keep HTML minimal** - just display the image on a black background, centered
+5. **Screenshot the rendered HTML** using playwright's `browser_take_screenshot`
+6. **Describe observations separately** in markdown text, not within the screenshot
 7. **Compare with previous versions** if available (visual regression testing)
 8. **Note any rendering issues** (glitches, performance, incorrect visuals)
 9. **Verify expected behavior** matches the visual output
@@ -176,16 +172,17 @@ For automated PR testing, use the example workflow in `examples/github-actions-e
 As GitHub Copilot reviewing Love2D PRs:
 
 ✅ **DO**: Run `/run-and-record.sh` to capture video, GIF, and screenshots
-✅ **DO**: Post the animated GIF inline in PR comments for immediate visual feedback
-✅ **DO**: Post individual screenshots to highlight specific frames or issues
-✅ **DO**: Post ONLY the raw game output images - no formatted presentations around them
-✅ **DO**: Describe visual observations in markdown text separate from the images
+✅ **DO**: Use playwright to render screenshots via minimal HTML pages
+✅ **DO**: Create HTML with ONLY the image - no text, headers, or descriptions
+✅ **DO**: Screenshot the rendered HTML page using `browser_take_screenshot`
+✅ **DO**: Post the playwright screenshots in PR comments
+✅ **DO**: Describe visual observations in markdown text separate from images
 ✅ **DO**: Compare with expected behavior and reference full MP4 video in artifacts
 
+❌ **DON'T**: Post raw image files directly (they won't display)
 ❌ **DON'T**: Skip visual capture when reviewing game rendering or behavior changes
-❌ **DON'T**: Post only text descriptions when visual output is available
-❌ **DON'T**: Forget to embed the animated GIF inline (not just as a link)
-❌ **DON'T**: Add headers, descriptions, or formatted presentations around the game screenshots
-❌ **DON'T**: Post anything other than the pure 800x600 game screen
+❌ **DON'T**: Add text, headers, or formatting within the screenshot HTML
+❌ **DON'T**: Post formatted presentations or explanatory text around game output
+❌ **DON'T**: Try to embed images with markdown img tags (use playwright instead)
 
-This approach ensures comprehensive visual feedback that's immediately accessible to developers and reviewers.
+This approach ensures screenshots are properly visible in PR comments and provide immediate visual feedback.
