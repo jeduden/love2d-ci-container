@@ -75,8 +75,16 @@ When reviewing a PR with Love2D game changes:
    1. Read the PNG file from `output/frame_*.png`
    2. Encode as base64
    3. Create minimal HTML with just the image (no text)
-   4. Use playwright to navigate to the HTML and take screenshot
-   5. Post the playwright screenshot in the PR comment
+   4. Save HTML to a file (e.g., `/tmp/screenshot-frame-30.html`)
+   5. Use playwright to navigate to `file:///tmp/screenshot-frame-30.html` and take screenshot
+   6. Verify the screenshot was captured successfully (file exists and has size > 0)
+   7. If capture fails, retry up to 2 times with 1 second delay between attempts
+   8. Post the playwright screenshot in the PR comment
+   
+   **Error Handling:**
+   - Always verify each screenshot file exists before attempting to display it
+   - If a screenshot fails to render, log the error and continue with remaining screenshots
+   - Ensure ALL generated screenshots are processed and posted to PR comments
    
    **For animated GIFs:**
    1. Read `output/game-recording.gif`
@@ -113,11 +121,13 @@ The screenshots should contain ONLY the game visual output - no surrounding text
 3. **Post clean game output only** - HTML should contain ONLY the image, no text or formatting
 4. **Keep HTML minimal** - just display the image on a black background, centered
 5. **Screenshot the rendered HTML** using playwright's `browser_take_screenshot`
-6. **Describe observations separately** in markdown text, not within the screenshot
-7. **Compare with previous versions** if available (visual regression testing)
-8. **Note any rendering issues** (glitches, performance, incorrect visuals)
-9. **Verify expected behavior** matches the visual output
-10. **Use artifacts** for full quality video when detailed analysis is needed
+6. **Verify all screenshots** - Ensure every generated screenshot (frame_30.png, frame_90.png, frame_150.png) is successfully captured and posted
+7. **Handle failures gracefully** - If one screenshot fails, continue processing the remaining screenshots
+8. **Describe observations separately** in markdown text, not within the screenshot
+9. **Compare with previous versions** if available (visual regression testing)
+10. **Note any rendering issues** (glitches, performance, incorrect visuals)
+11. **Verify expected behavior** matches the visual output
+12. **Use artifacts** for full quality video when detailed analysis is needed
 
 ### Screenshot Capture in Game Code
 
@@ -174,7 +184,10 @@ As GitHub Copilot reviewing Love2D PRs:
 ✅ **DO**: Run `/run-and-record.sh` to capture video, GIF, and screenshots
 ✅ **DO**: Use playwright to render screenshots via minimal HTML pages
 ✅ **DO**: Create HTML with ONLY the image - no text, headers, or descriptions
+✅ **DO**: Save HTML to file and use `file://` URL for consistent rendering
 ✅ **DO**: Screenshot the rendered HTML page using `browser_take_screenshot`
+✅ **DO**: Verify each screenshot capture succeeded before posting
+✅ **DO**: Process ALL generated screenshots (check for frame_30.png, frame_90.png, frame_150.png)
 ✅ **DO**: Post the playwright screenshots in PR comments
 ✅ **DO**: Describe visual observations in markdown text separate from images
 ✅ **DO**: Compare with expected behavior and reference full MP4 video in artifacts
