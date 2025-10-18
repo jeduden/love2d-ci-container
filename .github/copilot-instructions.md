@@ -60,10 +60,13 @@ When reviewing a PR with Love2D game changes:
    - Load `output/game-recording.gif` and embed it directly
    - The GIF shows the complete game execution with smooth animation
    - This provides immediate visual feedback without requiring downloads
+   - **Post ONLY the GIF image** - no headers, descriptions, or surrounding formatting
 
 4. **Post individual screenshots:**
    - Load and post PNG screenshots from `output/frame_*.png`
    - These show specific game states at key frames
+   - **Post ONLY the raw PNG images** - no explanatory text or formatting around them
+   - Screenshots should show ONLY the game screen (800x600 pixels)
    - Useful for comparing before/after states
 
 5. **Reference full video in artifacts:**
@@ -83,8 +86,6 @@ I've tested the game changes using the Love2D CI container. Here's what I observ
 
 ![Game Recording](path/to/game-recording.gif)
 
-The animated GIF above shows the complete game execution (~3 seconds at 10 FPS).
-
 ### Key Observations
 
 - [Your observations about the visual behavior]
@@ -93,34 +94,34 @@ The animated GIF above shows the complete game execution (~3 seconds at 10 FPS).
 
 ### Screenshots at Key Frames
 
-**Frame 30 (1 second):**
 ![Frame 30](path/to/frame_30.png)
 
-**Frame 90 (3 seconds):**
 ![Frame 90](path/to/frame_90.png)
 
-**Frame 150 (5 seconds):**
 ![Frame 150](path/to/frame_150.png)
 
 ### Additional Details
 
 - Resolution: 800x600 (headless mode via Xvfb)
 - Full quality MP4 video available in artifacts
-- Audio: [Tested with SDL dummy driver / Not applicable]
 
 [Your detailed review comments here]
 ```
+
+**Important:** Post screenshots and GIFs as raw images without any surrounding formatting, descriptions, or headers within the image itself. The game output should be clean and unadorned.
 
 ### Best Practices
 
 1. **Always capture visual output** when reviewing Love2D game PRs
 2. **Always post the animated GIF** inline in your comment for immediate visual feedback
 3. **Post individual screenshots** to highlight specific states or issues
-4. **Describe what you observe** in the visual output
-5. **Compare with previous versions** if available (visual regression testing)
-6. **Note any rendering issues** (glitches, performance, incorrect visuals)
-7. **Verify expected behavior** matches the visual output
-8. **Use artifacts** for full quality video when detailed analysis is needed
+4. **Post clean game output only** - no formatted presentations, headers, or explanatory text around images
+5. **Screenshots should show ONLY the game screen** - the raw 800x600 pixel output without surrounding content
+6. **Describe what you observe** in the visual output using markdown text, separate from the images
+7. **Compare with previous versions** if available (visual regression testing)
+8. **Note any rendering issues** (glitches, performance, incorrect visuals)
+9. **Verify expected behavior** matches the visual output
+10. **Use artifacts** for full quality video when detailed analysis is needed
 
 ### Screenshot Capture in Game Code
 
@@ -177,11 +178,14 @@ As GitHub Copilot reviewing Love2D PRs:
 ✅ **DO**: Run `/run-and-record.sh` to capture video, GIF, and screenshots
 ✅ **DO**: Post the animated GIF inline in PR comments for immediate visual feedback
 ✅ **DO**: Post individual screenshots to highlight specific frames or issues
-✅ **DO**: Describe visual observations and compare with expected behavior
-✅ **DO**: Reference full MP4 video in artifacts for detailed analysis
+✅ **DO**: Post ONLY the raw game output images - no formatted presentations around them
+✅ **DO**: Describe visual observations in markdown text separate from the images
+✅ **DO**: Compare with expected behavior and reference full MP4 video in artifacts
 
 ❌ **DON'T**: Skip visual capture when reviewing game rendering or behavior changes
 ❌ **DON'T**: Post only text descriptions when visual output is available
 ❌ **DON'T**: Forget to embed the animated GIF inline (not just as a link)
+❌ **DON'T**: Add headers, descriptions, or formatted presentations around the game screenshots
+❌ **DON'T**: Post anything other than the pure 800x600 game screen
 
 This approach ensures comprehensive visual feedback that's immediately accessible to developers and reviewers.
