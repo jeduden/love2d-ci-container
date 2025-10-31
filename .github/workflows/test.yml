@@ -17,6 +17,8 @@ on:
 env:
   ASSETS_BRANCH: ${{ github.event.inputs.assets_branch || 'love2d-ci-assets' }}
 
+permissions:
+  contents: read
 jobs:
   test:
     runs-on: ubuntu-latest
