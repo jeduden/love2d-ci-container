@@ -15,6 +15,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # Minimal X11 libraries for headless rendering
     libgl1-mesa-dri \
     libgl1-mesa-glx \
+    # PulseAudio for dummy audio driver
+    pulseaudio \
+    # For screenshot conversion (optional but recommended)
+    imagemagick \
+    # For video recording
+    ffmpeg \
     # Install love but work around the postinst alternatives issue
     && apt-get install -y --no-install-recommends love || true \
     # Create the missing man page directory and file to fix the alternatives issue
@@ -28,6 +34,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Create game directory
 RUN mkdir -p /game
 
+# Copy helper scripts
+COPY run-with-audio.sh /run-with-audio.sh
+COPY extract-screenshots.sh /extract-screenshots.sh
+COPY run-and-screenshot.sh /run-and-screenshot.sh
+COPY run-and-record.sh /run-and-record.sh
+RUN chmod +x /run-with-audio.sh /extract-screenshots.sh /run-and-screenshot.sh /run-and-record.sh
+
 # Set working directory
 WORKDIR /game
 
@@ -35,6 +48,7 @@ WORKDIR /game
 ENV DISPLAY=:99
 
 # Disable SDL audio to prevent ALSA errors in headless mode
+# Set to "dummy" to enable audio module without hardware
 ENV SDL_AUDIODRIVER=dummy
 
 # Default command runs love on /game directory with Xvfb

@@ -11,20 +11,79 @@ on:
 jobs:
   test-game:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       
-      - name: Run Love2D game tests
+      - name: Run game and record video
         run: |
+          mkdir -p output
           docker run --rm \
             -v ${{ github.workspace }}:/game \
-            ghcr.io/jeduden/love2d-ci-container:latest
-      
-      - name: Run custom game script
-        run: |
-          docker run --rm \
-            -v ${{ github.workspace }}:/game \
+            -v ${{ github.workspace }}/output:/output \
             ghcr.io/jeduden/love2d-ci-container:latest \
-            lua /game/scripts/test.lua
+            /run-and-record.sh
+      
+      - name: Upload video and screenshots
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: game-recording
+          path: output/
+      
+      - name: Display results in summary
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let summary = '# 🎮 Game Test Results\n\n';
+            
+            // Animated GIF preview
+            if (fs.existsSync('output/game-recording.gif')) {
+              const gifBuffer = fs.readFileSync('output/game-recording.gif');
+              const gifBase64 = gifBuffer.toString('base64');
+              summary += '## 🎬 Game Recording\n\n';
+              summary += `![Game Recording](data:image/gif;base64,${gifBase64})\n\n`;
+            }
+            
+            // Video info
+            if (fs.existsSync('output/game-recording.mp4')) {
+              const stats = fs.statSync('output/game-recording.mp4');
+              const sizeMB = (stats.size / 1024 / 1024).toFixed(2);
+              summary += `**Full Video (MP4)** - ${sizeMB} MB - 📥 Download from artifacts\n\n`;
+            }
+            
+            await core.summary.addRaw(summary).write();
+      
+      - name: Post to PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let comment = '## 🎮 Game Test Results\n\n';
+            
+            if (fs.existsSync('output/game-recording.mp4')) {
+              const stats = fs.statSync('output/game-recording.mp4');
+              const sizeMB = (stats.size / 1024 / 1024).toFixed(2);
+              comment += `### 🎬 Video Recording\n\nVideo captured (${sizeMB} MB)\n\n`;
+            }
+            
+            const files = fs.readdirSync('output').filter(f => f.endsWith('.png'));
+            if (files.length > 0) {
+              comment += `### 📸 Screenshots\n\nCaptured ${files.length} screenshot(s)\n\n`;
+            }
+            
+            comment += '📥 Download the **game-recording** artifact to view all outputs.';
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });

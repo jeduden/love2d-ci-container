@@ -7,12 +7,24 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      assets_branch:
+        description: 'Branch to store assets (screenshots/videos)'
+        required: false
+        default: 'love2d-ci-assets'
+
+env:
+  ASSETS_BRANCH: ${{ github.event.inputs.assets_branch || 'love2d-ci-assets' }}
 
 permissions:
   contents: read
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     
     steps:
       - name: Checkout code
@@ -35,6 +47,127 @@ jobs:
           docker run --rm \
             -v ${{ github.workspace }}/test-game:/game \
             love2d-ci:test
+      
+      - name: Test screenshot capture
+        run: |
+          mkdir -p screenshots
+          docker run --rm \
+            -v ${{ github.workspace }}/test-game:/game \
+            -v ${{ github.workspace }}/screenshots:/output \
+            love2d-ci:test \
+            /run-and-screenshot.sh
+      
+      - name: Record video of game
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/test-game:/game \
+            -v ${{ github.workspace }}/screenshots:/output \
+            love2d-ci:test \
+            /run-and-record.sh
+      
+      - name: Verify screenshots were created
+        run: |
+          echo "Checking for screenshots..."
+          ls -lh screenshots/
+          test $(ls -1 screenshots/*.png 2>/dev/null | wc -l) -gt 0 || (echo "No screenshots found!" && exit 1)
+          echo "Screenshots created successfully!"
+          
+          if [ -f screenshots/game-recording.mp4 ]; then
+            echo "Video recording found!"
+            ls -lh screenshots/game-recording.mp4
+          fi
+      
+      - name: Upload screenshots and video
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-game-outputs
+          path: screenshots/
+          retention-days: 7
+      
+      - name: Upload assets to branch
+        if: always()
+        run: |
+          # Configure git
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Create unique directory for this run
+          RUN_ID="${{ github.run_id }}"
+          ASSET_DIR="runs/${RUN_ID}"
+          
+          # Clone or create assets branch
+          if git ls-remote --exit-code --heads origin ${{ env.ASSETS_BRANCH }} > /dev/null 2>&1; then
+            git fetch origin ${{ env.ASSETS_BRANCH }}:${{ env.ASSETS_BRANCH }}
+            git checkout ${{ env.ASSETS_BRANCH }}
+          else
+            git checkout --orphan ${{ env.ASSETS_BRANCH }}
+            git rm -rf . || true
+            echo "# Love2D CI Assets" > README.md
+            echo "This branch stores screenshots and videos from CI runs." >> README.md
+            git add README.md
+            git commit -m "Initialize assets branch"
+          fi
+          
+          # Create directory and copy assets
+          mkdir -p "${ASSET_DIR}"
+          if [ -d screenshots ]; then
+            cp -r screenshots/* "${ASSET_DIR}/" || true
+          fi
+          
+          # Commit and push
+          git add "${ASSET_DIR}"
+          git commit -m "Add assets from run ${{ github.run_id }}" || echo "No changes to commit"
+          git push origin ${{ env.ASSETS_BRANCH }}
+          
+          # Save asset URLs for later steps
+          echo "ASSET_BASE_URL=https://raw.githubusercontent.com/${{ github.repository }}/${{ env.ASSETS_BRANCH }}/${ASSET_DIR}" >> $GITHUB_ENV
+          echo "ASSET_DIR=${ASSET_DIR}" >> $GITHUB_ENV
+      
+      - name: Display test results in summary
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const assetBaseUrl = process.env.ASSET_BASE_URL;
+            
+            let summary = '# 🎮 Love2D CI Test Results\n\n';
+            
+            // Animated GIF preview
+            if (fs.existsSync('screenshots/game-recording.gif')) {
+              const stats = fs.statSync('screenshots/game-recording.gif');
+              const sizeMB = (stats.size / 1024 / 1024).toFixed(2);
+              
+              summary += '## 🎬 Game Recording\n\n';
+              summary += `![Game Recording](${assetBaseUrl}/game-recording.gif)\n\n`;
+              summary += `**Animated GIF** - ${sizeMB} MB (10 FPS)\n\n`;
+            }
+            
+            // Video recording info
+            if (fs.existsSync('screenshots/game-recording.mp4')) {
+              const stats = fs.statSync('screenshots/game-recording.mp4');
+              const sizeMB = (stats.size / 1024 / 1024).toFixed(2);
+              summary += `**Full Video (MP4)** - ${sizeMB} MB (30 FPS) - [View](${assetBaseUrl}/game-recording.mp4)\n\n`;
+            }
+            
+            // Screenshots
+            const screenshotDir = 'screenshots';
+            if (fs.existsSync(screenshotDir)) {
+              const files = fs.readdirSync(screenshotDir).filter(f => f.endsWith('.png')).sort();
+              if (files.length > 0) {
+                summary += '## 📸 Screenshots\n\n';
+                
+                for (const file of files) {
+                  const stats = fs.statSync(`${screenshotDir}/${file}`);
+                  const sizeKB = (stats.size / 1024).toFixed(1);
+                  summary += `### ${file} (${sizeKB} KB)\n\n`;
+                  summary += `![${file}](${assetBaseUrl}/${file})\n\n`;
+                }
+              }
+            }
+            
+            await core.summary.addRaw(summary).write();
       
       - name: Verify LuaJIT is available
         run: |

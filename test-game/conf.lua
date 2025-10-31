@@ -9,8 +9,8 @@ function love.conf(t)
     t.window.vsync = 1
     t.window.display = 1
     
-    -- Disable audio completely for headless operation
-    t.modules.audio = false
+    -- Audio enabled with SDL_AUDIODRIVER=dummy for headless CI
+    t.modules.audio = true
     
     -- Minimize modules for faster startup
     t.modules.joystick = false
